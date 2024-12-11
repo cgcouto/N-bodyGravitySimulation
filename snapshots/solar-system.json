@@ -1,0 +1,14 @@
+{
+    "simData":
+    {
+        "pos_x": [400.0, 500.0, 600.0],
+        "pos_y": [400.0, 500.0, 600.0],
+        "vel_x": [0.0, 0.0, 0.0],
+        "vel_y": [0.0, 0.0, 0.0],
+        "mass": 5.0
+    },
+    "menuContents" :
+    {
+        "description": "This is a very basic solar system sim setup!"
+    }
+}

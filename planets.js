@@ -1,5 +1,6 @@
 _integrationValues = [ 'Runge Kutta 4', 'Euler', 'Verlet' ];
 _collisionValues = [ 'Combine', 'Bounce', 'None' ];
+_scenes = ['none', 'solar-system', 'cube'];
 _minMass = 1000;
 _maxMass = 100000;
 
@@ -12,8 +13,10 @@ _settings = {
 	barnesHut: false,
 	collisions: _collisionValues[0],
 	damping: 0,
+	scene: _scenes[0],
 	clear: function() {
 		_doClear = true;
+		setScene();
 	},
 	reset: function() {
 		_settings.mass = 4000;
@@ -24,6 +27,7 @@ _settings = {
 		_settings.barnesHut = false;
 		_settings.collisions = _collisionValues[0];
 		_settings.damping = 0;
+		_settings.scene = _scenes[0];
 	}
 };
 
@@ -130,13 +134,14 @@ function init() {
 	newPlanetSettings.addColor(_settings, 'color').name('Color').listen();
 	newPlanetSettings.open();
 	var globalSettings = gui.addFolder('Global Controls');
-	globalSettings.add(_settings, 'clear').name('Remove Planets').listen();
+	globalSettings.add(_settings, 'clear').name('Reset').listen();
 	globalSettings.add(_settings, 'trailOpacity', 0.0, 1.0).step(.01).name('Trail Opacity').listen();
 	globalSettings.add(_settings, 'timeStep', 1/250, 1/5).name('Time Step');
 	globalSettings.add(_settings, 'integration', _integrationValues).name('Integration').listen();
 	globalSettings.add(_settings, 'collisions', _collisionValues).name('Collisions').listen();
 	globalSettings.add(_settings, 'damping', 0, 100).name('Damping').listen();
 	//globalSettings.add(_settings, 'barnesHut').name('Barnes Hut?').listen();
+	globalSettings.add(_settings, 'scene', _scenes).name('Current Scene').listen().onChange( setScene );;
 	globalSettings.open();
 
 
@@ -187,6 +192,7 @@ function init() {
 
 	_stats = document.getElementById('stats');
 	_blurb = document.getElementById('blurb');
+	_description = document.getElementById('description');
 
 	_frameTime = 0;
 	_lastLoop = new Date();
@@ -195,12 +201,19 @@ function init() {
 		fpsOut.innerHTML = (1000/_frameTime).toFixed(1) + " fps";
 	},1000);
 
+	setScene();
+
 	run();
 	setInterval(run, 10);
+
 }
 
 function stats() {
 	_stats.innerHTML = _planets.length + " planets";
+}
+
+function setDescription(text) {
+	_description.innerHTML = text;
 }
 
 function run() {
@@ -491,6 +504,27 @@ function system(ix, iy, ivx, ivy) {
 		_planets.push(new Planet(m, ix+x, iy+y, vx+ivx, vy+ivy));
 	}
 	_planets.push(new Planet((_settings.mass)*8000, ix, iy, ivx, ivy));
+}
+
+function setScene() {
+	// clear current planet list
+	_doClear = true;
+
+	// load data from json file
+	loadSceneJSON(_settings.scene);
+}
+
+function loadSceneJSON(sceneName) {
+	// parse json file
+	fetch('/snapshots/' + sceneName + '.json')
+	.then(response => response.json())
+	.then(data => {
+		// update sim state and HTML description
+		for (var i = 0; i < Object.keys(data.simData.pos_x).length; i++) {
+			_planets.push(new Planet((data.simData.mass)*8000, data.simData.pos_x[i], data.simData.pos_y[i], data.simData.vel_x[i], data.simData.vel_y[i]));
+		}
+		setDescription(data.menuContents.description);
+	}).catch(error => console.log(error));
 }
 
 function hexToRgb(hex) {

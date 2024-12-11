@@ -1,0 +1,14 @@
+{
+    "simData":
+    {
+        "pos_x": [],
+        "pos_y": [],
+        "vel_x": [],
+        "vel_y": [],
+        "mass": 0
+    },
+    "menuContents" :
+    {
+        "description": "N-body Gravity Simulation \n Click to add planet. Click and drag to add velocity. \n Ctrl + move to pan camera."
+    }
+}
